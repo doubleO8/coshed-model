@@ -1,0 +1,8 @@
+.DS_Store
+._*
+*.py[cod]
+/.idea
+/.vscode
+*~
+/dist
+/venv
