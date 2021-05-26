@@ -3,32 +3,59 @@
 import pendulum
 
 
-class SlotsEmptyError(ValueError):
+class TimestampSlotEmptyError(ValueError):
+    """
+    Exception to be raised when a timestamp slot is empy
+    """
+
     pass
 
 
-class Slots(set):
-    def __init__(self, *args):
+class InvalidSlotError(ValueError):
+    """
+    Exception to be raised when one tries to add a value for a non-existing/invalid slot
+    """
+
+    pass
+
+
+class TimestampSlot(set):
+    """
+    Model class for holding unique timestamp values.
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.limit = kwargs.get("limit", 0)
         if len(args) == 1:
             for item in iter(args[0]):
-                val = Slots.int_timestamp(item)
-                self |= val
+                self |= item
 
     @classmethod
     def int_timestamp(cls, in_value):
+        """
+        Convert ``in_value`` to an integer timestamp
+
+        Args:
+            in_value (any): input value, either ``int``, a \
+                :py:class:`datetime.datetime` object or a string \
+                representation of a datetime that is parseable by \
+                pendulum library
+
+        Returns:
+            int: timestamp value
+        """
         if isinstance(in_value, pendulum.DateTime):
             val = in_value.in_tz(pendulum.UTC).int_timestamp
         elif isinstance(in_value, int):
             val = pendulum.from_timestamp(in_value).in_tz(pendulum.UTC).int_timestamp
         else:
-            # raise ValueError(type(in_value))
             dt = pendulum.parse(in_value)
             val = dt.in_tz(pendulum.UTC).int_timestamp
 
         return val
 
     def __ior__(self, other):
-        return super().__ior__(set([Slots.int_timestamp(other)]))
+        return super().__ior__(set([TimestampSlot.int_timestamp(other)]))
 
     def __iadd__(self, other):
         return NotImplemented
@@ -37,12 +64,98 @@ class Slots(set):
         return NotImplemented
 
     def json(self, **kwargs):
+        """
+        Generate a list of timestamp values suitable to be encoded as JSON data.
+        The list is sorted in such ways
+        that the first value will be the maximum value.
+        Optionally the amount of returned values is limited by :py:data:`~.limit`
+        or ``limit`` keyword argument.
+
+
+        Raises:
+            TimestampSlotEmptyError: If no values are available
+
+        Returns:
+            list: sorted list of unique timestamp values
+        """
+        limit = self.limit
         r_sorted = list(reversed(sorted(self)))
 
-        if len(r_sorted) == 0 and not kwargs.get("allow_empty", False):
-            raise SlotsEmptyError()
+        if len(r_sorted) == 0:
+            raise TimestampSlotEmptyError()
 
         if kwargs.get("limit"):
-            r_sorted = r_sorted[: kwargs.get("limit")]
+            limit = kwargs.get("limit")
+
+        if limit:
+            r_sorted = r_sorted[:limit]
 
         return r_sorted
+
+
+class SlotsDocument(object):
+    def __init__(self, policy_data=None) -> None:
+        self._slot_policy = dict()
+        self._data = dict()
+
+        if policy_data is not None:
+            for key, value in policy_data.items():
+                self._slot_policy[key] = value
+
+    def __len__(self):
+        return len(self._data)
+
+    def keys(self):
+        return self._data.keys()
+
+    def load(self, data):
+        """
+        Load slot values by evaluating ``data`` key/value pairs.
+
+        Args:
+            data (dict): slot values
+        """
+        for key, value in data.items():
+            if key not in self._slot_policy:
+                continue
+
+            self._data[key] = TimestampSlot(value, limit=self._slot_policy[key])
+
+    def add(self, key, value):
+        """
+        Add timestamp value for ``key``.
+
+        Args:
+            key (str): data key
+            value (any): timestamp value
+
+        Raises:
+            InvalidSlotError: If data for an invalid/unknown slot were to be added
+        """
+        if key not in self._slot_policy:
+            raise InvalidSlotError(key)
+
+        try:
+            self._data[key] |= value
+        except KeyError:
+            self._data[key] = TimestampSlot([value])
+
+    def json(self):
+        """
+        Generate a representation of the slots contained suitable to be encoded
+        as JSON data.
+
+        Returns:
+            dict: slot data document
+        """
+        document = dict(data=dict())
+
+        for key, value in self._data.items():
+            try:
+                document["data"][key] = value.json()
+            except TimestampSlotEmptyError:
+                pass
+
+        document["dt"] = pendulum.now(pendulum.UTC).to_rfc3339_string()
+
+        return document
