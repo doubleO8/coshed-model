@@ -63,6 +63,39 @@ class TimestampSlot(set):
     def __isub__(self, other):
         return NotImplemented
 
+    def dt_objects(self, in_period=None):
+        """
+        Generator for converting values to datetime objects.
+        Optionally filtered by a period object defining the
+        boundaries within the yielded values need to be in.
+
+        Args:
+            in_period (pendulum.Period, optional): Datetime period. Defaults to None.
+
+        Yields:
+            datetime.datetime: datetime object
+        """
+        for value in self:
+            dt_obj = pendulum.from_timestamp(value)
+
+            try:
+                if dt_obj in in_period:
+                    yield dt_obj
+            except TypeError:
+                yield dt_obj
+
+    def remove_items_in_period(self, in_period):
+        """
+        Remove values contained in given period from current
+        object.
+
+        Args:
+            in_period (pendulum.Period): Datetime period
+        """
+        for value in list(self):
+            if pendulum.from_timestamp(value) in in_period:
+                self.remove(value)
+
     def json(self, **kwargs):
         """
         Generate a list of timestamp values suitable to be encoded as JSON data.

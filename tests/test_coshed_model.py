@@ -17,6 +17,9 @@ def test_timestamp_slot():
     assert len(s) == 1
     assert s.json() == [1621893600]
 
+    s -= TimestampSlot([1621893600])
+    assert len(s) == 0
+
 
 def test_timestamp_slot_initialising():
     s = TimestampSlot([1, 1, 1])
@@ -39,6 +42,30 @@ def test_timestamp_slot_json_output():
 
     s3 = TimestampSlot([17, 1, 1, -1, 2, 3, 4, 5, 6])
     assert s3.json(limit=3) == [17, 6, 5]
+
+
+def test_dt_objects():
+    s = TimestampSlot()
+    s |= pendulum.datetime(2021, 5, 30, 10)
+    s |= pendulum.datetime(2021, 5, 30, 10)
+    s |= pendulum.datetime(2021, 5, 30, 11)
+    assert len(s) == 2
+
+    p0 = pendulum.period(
+        pendulum.datetime(2021, 5, 30), pendulum.datetime(2021, 5, 30, 10, 30)
+    )
+    assert len(list(s.dt_objects(p0))) == 1
+
+    p1 = pendulum.period(
+        pendulum.datetime(2021, 5, 30), pendulum.datetime(2021, 5, 30, 11, 30)
+    )
+    assert len(list(s.dt_objects(p1))) == 2
+
+    p2 = pendulum.period(pendulum.datetime(2021, 6, 1), pendulum.datetime(2021, 7, 1))
+    assert len(list(s.dt_objects(p2))) == 0
+
+    s.remove_items_in_period(p0)
+    assert len(s) == 1
 
 
 def test_slots_document():
