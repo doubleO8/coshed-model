@@ -138,6 +138,13 @@ class SlotsDocument(object):
     def __len__(self):
         return len(self._data)
 
+    def __getitem__(self, key):
+        return self._data[key]
+
+    @property
+    def data(self):
+        return self._data
+
     def keys(self):
         return self._data.keys()
 
