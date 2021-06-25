@@ -104,6 +104,14 @@ class UserDataControl:
         self.user_data["dt"] = pendulum.now().to_rfc3339_string()
         self.dc_data[self.data_key] = self.user_data
 
+    def drop(self):
+        self.log.info("Dropping data using {data_key!r}".format(data_key=self.data_key))
+
+        try:
+            del self.dc_data[self.data_key]
+        except KeyError:
+            pass
+
     def __getitem__(self, key):
         if key in self.namespaces:
             try:
