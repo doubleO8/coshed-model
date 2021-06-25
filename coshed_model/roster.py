@@ -19,6 +19,7 @@ class SPOFRoster:
     def __init__(self, hostname, *args, **kwargs):
         self.log = logging.getLogger(__name__)
         self.env_name = kwargs.get("env_name", "prod")
+        self.arn_prefix = kwargs.get("arn_prefix", "OH:IF:ONLY:WE:KNEW:")
         api_keys = dict()
         self._session_store = dict()
         self.roster = dict()
@@ -61,11 +62,17 @@ class SPOFRoster:
         the_url = "{base_url}/v1/{serial_number}/NOTIFICATION_SERVICE/NotificationsForMachine".format(
             base_url=s_data["base_url"], serial_number=serial_number
         )
+
         try:
             req = s_data["session"].get(the_url)
 
             for raw in req.json():
-                data.append(raw["userId"])
+                item = dict(
+                    topic_arn=self.arn_prefix + raw["id"],
+                    user_id=raw["userId"],
+                )
+                # self.log.debug(raw)
+                data.append(item)
         except Exception:
             return None
 
@@ -101,4 +108,3 @@ class SPOFRoster:
             return self[(env_name, serial_number)]
         except KeyError:
             return []
-
