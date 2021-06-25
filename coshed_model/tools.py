@@ -15,6 +15,8 @@ REGEX_MAC_STRIPPED = re.compile(PATTERN_MAC_STRIPPED)
 PATTERN_VALID_HEX = r"^[a-f0-9]{4,}$"
 REGEX_VALID_HEX = re.compile(PATTERN_VALID_HEX)
 
+PATTERN_VALID_IPV4
+
 
 def valid_mac_addr_or_bust(mac_addr):
     """
