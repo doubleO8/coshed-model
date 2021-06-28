@@ -13,6 +13,8 @@ DEFAULT_REGION = "eu-central-1"
 DEFAULT_TABLE_DATA = "alarmed"
 DEFAULT_TABLE_RULESET = "alarmed_id"
 
+DATASET_VERSION = 3
+
 
 class UserDataControl:
     def __init__(self, user_id, namespaces=None, *args, **kwargs):
@@ -40,10 +42,27 @@ class UserDataControl:
     @property
     def data(self):
         if "dt" in self.user_data:
+            self._sanitise_user_data_structure()
             return self.user_data
+
         self.load()
 
         return self.user_data
+
+    def _sanitise_user_data_structure(self):
+        try:
+            self.user_data[TID]
+        except KeyError:
+            self.user_data[TID] = dict()
+
+        for namespace in self.namespaces:
+            try:
+                self.user_data[TID][namespace]
+            except KeyError:
+                self.user_data[TID][namespace] = dict()
+
+        self.user_data["version"] = DATASET_VERSION
+        self.user_data["user_id"] = self.user_id
 
     def generate_ruleset_key(self, namespace):
         derived = environment_specific_name(self.user_id, env_name=self.env_name)
@@ -87,17 +106,7 @@ class UserDataControl:
             )
 
         self.user_data = data
-
-        try:
-            self.user_data[TID]
-        except KeyError:
-            self.user_data[TID] = dict()
-
-        for namespace in self.namespaces:
-            try:
-                self.user_data[TID][namespace]
-            except KeyError:
-                self.user_data[TID][namespace] = dict()
+        self._sanitise_user_data_structure()
 
     def save(self):
         self.log.info("Saving data using {data_key!r}".format(data_key=self.data_key))
