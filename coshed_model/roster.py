@@ -1,58 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import os
-import logging
-
-import requests
-from coshed_model.naming import cfapp_base_url
-
-ENVIRONMENT_ITEMS = ("prod", "dev", "qa")
-
-DEFAULT_ENVIRONMENT = "dev"
-
-DUMMY_API_KEY = (
-    "you are superior in only one respect -- you are better at dying"
-)
+from coshed_model.spof_client import SPOFClient
+from coshed_model.spof_client import DEFAULT_ENVIRONMENT, ENVIRONMENT_ITEMS
 
 
-class SPOFRoster:
+class SPOFRoster(SPOFClient):
     def __init__(self, hostname, *args, **kwargs):
-        self.log = logging.getLogger(__name__)
-        self.env_name = kwargs.get("env_name", "prod")
+        super().__init__(hostname, *args, **kwargs)
         self.arn_prefix = kwargs.get("arn_prefix", "OH:IF:ONLY:WE:KNEW:")
-        api_keys = dict()
-        self._session_store = dict()
-        self.roster = dict()
-
-        if kwargs.get("api_keys"):
-            api_keys = kwargs.get("api_keys")
-        else:
-            for key in ENVIRONMENT_ITEMS:
-                env_key = "SPOF_API_KEY_{!s}".format(key.upper())
-                try:
-                    api_keys[key] = os.environ[env_key]
-                except KeyError:
-                    self.log.warning(
-                        "No API Key for {!s} found in environment variable {!s}".format(
-                            key, env_key
-                        )
-                    )
-
-        for env_name in ENVIRONMENT_ITEMS:
-            self.roster[env_name] = dict()
-            if not api_keys.get(env_name):
-                api_keys[env_name] = DUMMY_API_KEY
-
-            session_data = dict(
-                base_url=cfapp_base_url(hostname, env_name=env_name),
-                session=requests.Session(),
-            )
-            headers = dict(
-                accept="application/json", authorization=api_keys[env_name]
-            )
-            session_data["session"].headers.update(headers)
-            # self.log.debug(session_data["session"].headers)
-            self._session_store[env_name] = session_data
 
     def fetch(self, serial_number, env_name=None):
         data = list()

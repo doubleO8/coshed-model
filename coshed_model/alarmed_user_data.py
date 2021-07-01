@@ -143,7 +143,7 @@ class UserDataControl:
         )
 
         try:
-            rv = pendulum.parse(self.user_data[TID][namespace][alarm_id][serial_number])
+            rv = pendulum.parse(self.data[TID][namespace][alarm_id][serial_number])
         except KeyError:
             pass
         except Exception as exc:
@@ -166,13 +166,14 @@ class UserDataControl:
         )
 
         try:
-            self.user_data[TID][namespace][alarm_id][serial_number]
+            self.data[TID][namespace][alarm_id][serial_number]
         except KeyError:
-            self.user_data[TID][namespace][alarm_id] = dict()
+            self._sanitise_user_data_structure()
+            self.data[TID][namespace][alarm_id] = dict()
         except Exception as exc:
             self.log.error(
                 "Oh, FUCK. Cannot set up data dictionary. This won't end well."
             )
             self.log.error(exc)
 
-        self.user_data[TID][namespace][alarm_id][serial_number] = v
+        self.data[TID][namespace][alarm_id][serial_number] = v
