@@ -166,14 +166,18 @@ class UserDataControl:
         )
 
         try:
-            self.data[TID][namespace][alarm_id][serial_number]
+            self.data[TID][namespace]
         except KeyError:
             self._sanitise_user_data_structure()
-            self.data[TID][namespace][alarm_id] = dict()
         except Exception as exc:
             self.log.error(
                 "Oh, FUCK. Cannot set up data dictionary. This won't end well."
             )
             self.log.error(exc)
+
+        try:
+            self.data[TID][namespace][alarm_id]
+        except KeyError:
+            self.data[TID][namespace][alarm_id] = dict()
 
         self.data[TID][namespace][alarm_id][serial_number] = v
