@@ -10,8 +10,19 @@ from coshed.tools import log_traceback
 from coshed_model.documents import JSONDocumentOnS3Controller
 
 
-class Cellule(tuple):
-    def __new__(self, value, dt=None, **kwargs):
+class Cellule(list):
+    """
+    >>> c = Cellule("x", pendulum.datetime(2021, 8, 8))
+    >>> c.value
+    'x'
+    >>> c.dt
+    DateTime(2021, 8, 8, 0, 0, 0, tzinfo=Timezone('+00:00'))
+    >>> import orjson
+    >>> orjson.dumps(c)
+    b'["2021-08-08T00:00:00+00:00","x"]'
+    """
+
+    def __init__(self, value, dt=None, **kwargs):
         if dt is None:
             dt = pendulum.now().to_rfc3339_string()
 
@@ -20,7 +31,7 @@ class Cellule(tuple):
         else:
             dt_str = dt
 
-        return tuple.__new__(Cellule, (dt_str, value))
+        list.__init__(self, (dt_str, value))
 
     @property
     def value(self):
@@ -226,3 +237,10 @@ class NouNou:
                 self.maternelle[enfant].learn(key, value)
         except KeyError:
             self.maternelle[enfant].learn(key, value)
+
+
+if __name__ == "__main__":
+    import doctest
+
+    (FAILED, SUCCEEDED) = doctest.testmod()
+    print("[doctest] SUCCEEDED/FAILED: {:d}/{:d}".format(SUCCEEDED, FAILED))
