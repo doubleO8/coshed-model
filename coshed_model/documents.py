@@ -25,6 +25,8 @@ class JSONDocumentOnS3Controller(object):
         else:
             self.bucket_name = kwargs.get("bucket_name")
 
+        self.region_name = kwargs.get("region_name")
+
         if self.bucket_name is None:
             mfg = (
                 "No bucket name?! Please set either environment variable "
@@ -44,7 +46,7 @@ class JSONDocumentOnS3Controller(object):
             value: value
 
         """
-        s3 = boto3.client("s3")
+        s3 = boto3.client("s3", region_name=self.region_name)
         filelike = BytesIO()
         filelike.write(orjson.dumps(value))
         filelike.seek(0)
@@ -52,7 +54,7 @@ class JSONDocumentOnS3Controller(object):
         s3.upload_fileobj(filelike, self.bucket_name, key)
 
     def s3_delete(self, key):
-        s3 = boto3.client("s3")
+        s3 = boto3.client("s3", region_name=self.region_name)
         s3.delete_object(Key=key, Bucket=self.bucket_name)
 
     def s3_download(self, key):
@@ -65,7 +67,7 @@ class JSONDocumentOnS3Controller(object):
         Returns:
             object: contents
         """
-        s3 = boto3.client("s3")
+        s3 = boto3.client("s3", region_name=self.region_name)
         filelike = BytesIO()
 
         s3.download_fileobj(self.bucket_name, key, filelike)
