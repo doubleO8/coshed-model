@@ -4,8 +4,9 @@ import logging
 
 import pendulum
 from djali.dynamodb import DynamoController
-from coshed_model.naming import environment_specific_name
 
+from coshed_model.naming import environment_specific_name
+from coshed_model.datetime_slots import SlotsDocument, InvalidSlotError
 
 TID = "alarm_latest_occurrence"
 DEFAULT_ENV_NAME = "prod"
@@ -27,7 +28,9 @@ class UserDataControl:
         self.env_name = kwargs.get("env_name", DEFAULT_ENV_NAME)
         self.user_id = str(user_id)
         self.namespaces = namespaces
+        #: generic data
         self.dc_data = DynamoController(table_data, region_name=region_name)
+        #: (user) rulesets
         self.dc_ruleset = DynamoController(table_ruleset, region_name=region_name)
         self.user_data = dict()
         self.user_rulesets = dict()
@@ -181,3 +184,52 @@ class UserDataControl:
             self.data[TID][namespace][alarm_id] = dict()
 
         self.data[TID][namespace][alarm_id][serial_number] = v
+
+
+def persist_records_for(serial_number, records, slots_data=None, **kwargs):
+    """
+    Persist alarm events for given serial_number and environment.
+
+    Args:
+        serial_number (str): Serial Number
+        records (list): Alarm events
+        slots_data (dict, optional): Slots. Defaults to None.
+
+    Returns:
+        coshed_model.datetime_slots.SlotsDocument: Slots document
+    """
+    env_name = kwargs.get("env_name", DEFAULT_ENV_NAME)
+    key = "alarms-{env_name}-{serial_number}".format(
+        serial_number=serial_number, env_name=env_name
+    )
+    table_data = kwargs.get("table_data", DEFAULT_TABLE_DATA)
+    table_ruleset = kwargs.get("table_ruleset", DEFAULT_TABLE_RULESET)
+    region_name = kwargs.get("region_name", DEFAULT_REGION)
+
+    #: (user) rulesets
+    dc_alarmed_id = DynamoController(table_ruleset, region_name=region_name)
+
+    #: generic data
+    dc_alarmed = DynamoController(table_data, region_name=region_name)
+
+    if slots_data is None:
+        slots_data = dc_alarmed_id["slots"]
+
+    sdoc = SlotsDocument(slots_data["slots"])
+    try:
+        data_doc = dc_alarmed[key]
+        sdoc.load(data_doc["data"])
+    except KeyError:
+        pass
+
+    for occurrence, alarm_id in records:
+        try:
+            sdoc.add(alarm_id, occurrence)
+        except InvalidSlotError:
+            pass
+
+    data_doc = sdoc.json()
+
+    dc_alarmed[key] = data_doc
+
+    return sdoc
