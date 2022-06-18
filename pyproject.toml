@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "coshed-model"
-version = "0.13.0"
+version = "0.14.0"
 description = ""
 authors = ["doubleO8 <wb008@hdm-stuttgart.de>"]
 
@@ -12,6 +12,7 @@ djali = "^0.2.0"
 boto3 = "^1.18.21"
 orjson = "^3.6.1"
 coshed = "^0.11.3"
+cryptography = "^37.0.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
