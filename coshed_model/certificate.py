@@ -82,6 +82,15 @@ class CertificateLoader:
         except Exception:
             pass
 
+        # self.log.debug(
+        #    f"uri_or_location={uri_or_location} => path={self.path} uri={self.uri}"
+        # )
+
+        # if self.path:
+        #    self.log.debug(f" => PATH={self.path}")
+        # else:
+        #    self.log.debug(f" => URI={self.uri}")
+
         try:
             self.certificate_obj = self._load()
         except Exception as exc:
@@ -150,6 +159,9 @@ class CertificateLoader:
 
     @property
     def evaluated_certificate(self):
+        if not self.valid:
+            raise InvalidCertificate(self.uri)
+
         return evaluated_certificate(self.certificate_obj, source_hint=self.uri)
 
 
