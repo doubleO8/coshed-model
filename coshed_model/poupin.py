@@ -42,7 +42,9 @@ class Cellule(list):
         return pendulum.parse(self[0])
 
     def __str__(self) -> str:
-        return "{!r} @{!s}".format(self.value, self.dt.format("YYYY-MM-DD HH:mm:ss Z"))
+        return "{!r} @{!s}".format(
+            self.value, self.dt.format("YYYY-MM-DD HH:mm:ss Z")
+        )
 
 
 class CelluleBorked(ValueError):
@@ -61,7 +63,9 @@ class PoupinCerveau(dict):
     def __setitem__(self, key, value):
         if key not in self and isinstance(value, list):
             if len(value) == 2:
-                dataset = [Cellule(raw_val, raw_dt) for (raw_dt, raw_val) in value]
+                dataset = [
+                    Cellule(raw_val, raw_dt) for (raw_dt, raw_val) in value
+                ]
 
                 return super().__setitem__(key, dataset)
 
@@ -75,7 +79,9 @@ class PoupinCerveau(dict):
                 (dt_now, None),
             ]
 
-        dataset = [Cellule(raw_val, raw_dt) for (raw_dt, raw_val) in raw_dataset]
+        dataset = [
+            Cellule(raw_val, raw_dt) for (raw_dt, raw_val) in raw_dataset
+        ]
 
         previous = dataset[0]
         current = dataset[1]
@@ -84,7 +90,9 @@ class PoupinCerveau(dict):
             raise CelluleBorked()
 
         if not current.dt <= dt_now:
-            raise ValueOutdated("Will not accept data prior to {!r}".format(current.dt))
+            raise ValueOutdated(
+                "Will not accept data prior to {!r}".format(current.dt)
+            )
 
         if current.value != value:
             previous = current
@@ -166,7 +174,9 @@ class NouNou:
                     for k, v in enfant_v.items():
                         self.maternelle[enfant][k] = v
             except Exception as exc:
-                log_traceback("Failed to transform raw data!", exc, uselog=self.log)
+                log_traceback(
+                    "Failed to transform raw data!", exc, uselog=self.log
+                )
         else:
             self.log.warning("No data key!")
 
@@ -182,7 +192,9 @@ class NouNou:
 
             if self.changed_items:
                 self.log.info(
-                    "Changed: {!s}".format(", ".join(sorted(self.changed_items)))
+                    "Changed: {!s}".format(
+                        ", ".join(sorted(self.changed_items))
+                    )
                 )
                 persistence_control = JSONDocumentOnS3Controller(
                     bucket_name=self.bucket, region_name=self.region_name

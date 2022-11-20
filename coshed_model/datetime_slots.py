@@ -47,7 +47,11 @@ class TimestampSlot(set):
         if isinstance(in_value, pendulum.DateTime):
             val = in_value.in_tz(pendulum.UTC).int_timestamp
         elif isinstance(in_value, int):
-            val = pendulum.from_timestamp(in_value).in_tz(pendulum.UTC).int_timestamp
+            val = (
+                pendulum.from_timestamp(in_value)
+                .in_tz(pendulum.UTC)
+                .int_timestamp
+            )
         else:
             dt = pendulum.parse(in_value)
             val = dt.in_tz(pendulum.UTC).int_timestamp
@@ -159,7 +163,9 @@ class SlotsDocument(object):
             if key not in self._slot_policy:
                 continue
 
-            self._data[key] = TimestampSlot(value, limit=self._slot_policy[key])
+            self._data[key] = TimestampSlot(
+                value, limit=self._slot_policy[key]
+            )
 
     def add(self, key, value):
         """

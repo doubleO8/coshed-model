@@ -25,9 +25,9 @@ def evaluated_certificate(certificate_obj, source_hint="", u_now=None):
 
     dt_not_before = pendulum.instance(certificate_obj.not_valid_before)
     dt_not_after = pendulum.instance(certificate_obj.not_valid_after)
-    subject = certificate_obj.subject.get_attributes_for_oid(NameOID.COMMON_NAME)[
-        0
-    ].value
+    subject = certificate_obj.subject.get_attributes_for_oid(
+        NameOID.COMMON_NAME
+    )[0].value
 
     data = dict(
         obj=certificate_obj,
@@ -143,10 +143,16 @@ class CertificateLoader:
 
         if self.valid:
             edict = self.evaluated_certificate
-            not_valid_before = edict["dt_not_before"].in_tz(self.tz).format(self.dt_fmt)
-            not_valid_after = edict["dt_not_after"].in_tz(self.tz).format(self.dt_fmt)
+            not_valid_before = (
+                edict["dt_not_before"].in_tz(self.tz).format(self.dt_fmt)
+            )
+            not_valid_after = (
+                edict["dt_not_after"].in_tz(self.tz).format(self.dt_fmt)
+            )
             expired_indicator = edict["expired"] and " EXPIRED" or ""
-            expiring_soon_indicator = edict["expiring_soon"] and " EXPIRING SOON" or ""
+            expiring_soon_indicator = (
+                edict["expiring_soon"] and " EXPIRING SOON" or ""
+            )
             subject = edict["subject"]
 
             return f"<{self.__class__.__name__} {self.uri} {subject} {not_valid_before} -- {not_valid_after}{expired_indicator}{expiring_soon_indicator}>"
@@ -162,7 +168,9 @@ class CertificateLoader:
         if not self.valid:
             raise InvalidCertificate(self.uri)
 
-        return evaluated_certificate(self.certificate_obj, source_hint=self.uri)
+        return evaluated_certificate(
+            self.certificate_obj, source_hint=self.uri
+        )
 
 
 if __name__ == "__main__":

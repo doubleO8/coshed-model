@@ -10,7 +10,9 @@ ENVIRONMENT_ITEMS = ("prod", "dev", "qa")
 
 DEFAULT_ENVIRONMENT = "dev"
 
-DUMMY_API_KEY = "you are superior in only one respect -- you are better at dying"
+DUMMY_API_KEY = (
+    "you are superior in only one respect -- you are better at dying"
+)
 
 
 class SPOFClient:
@@ -31,7 +33,9 @@ class SPOFClient:
                 if self.api_key_prefix in os.environ:
                     env_key = self.api_key_prefix
                     self.log.debug(
-                        "Using {env_key!s} for {key!s}".format(env_key=env_key, key=key)
+                        "Using {env_key!s} for {key!s}".format(
+                            env_key=env_key, key=key
+                        )
                     )
 
                 try:
@@ -52,7 +56,9 @@ class SPOFClient:
                 base_url=cfapp_base_url(hostname, env_name=env_name),
                 session=requests.Session(),
             )
-            headers = dict(accept="application/json", authorization=api_keys[env_name])
+            headers = dict(
+                accept="application/json", authorization=api_keys[env_name]
+            )
             session_data["session"].headers.update(headers)
             # self.log.debug(session_data["session"].headers)
             self._session_store[env_name] = session_data

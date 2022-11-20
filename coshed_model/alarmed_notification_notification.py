@@ -34,7 +34,9 @@ class SPOFNotificationNotification(SPOFClient):
             req = s_data["session"].post(the_url, json=payload)
 
             if req.status_code != 200:
-                self.log.warning("Got HTTP Status Code {!r}".format(req.status_code))
+                self.log.warning(
+                    "Got HTTP Status Code {!r}".format(req.status_code)
+                )
 
             return req.status_code == 200
         except Exception as exc:

@@ -31,7 +31,9 @@ class UserDataControl:
         #: generic data
         self.dc_data = DynamoController(table_data, region_name=region_name)
         #: (user) rulesets
-        self.dc_ruleset = DynamoController(table_ruleset, region_name=region_name)
+        self.dc_ruleset = DynamoController(
+            table_ruleset, region_name=region_name
+        )
         self.user_data = dict()
         self.user_rulesets = dict()
 
@@ -68,14 +70,21 @@ class UserDataControl:
         self.user_data["user_id"] = self.user_id
 
     def generate_ruleset_key(self, namespace):
-        derived = environment_specific_name(self.user_id, env_name=self.env_name)
+        derived = environment_specific_name(
+            self.user_id, env_name=self.env_name
+        )
         return ".".join((namespace, derived))
 
     def __str__(self):
-        portions = ["<{klass}".format(klass=self.__class__.__name__), self.data_key]
+        portions = [
+            "<{klass}".format(klass=self.__class__.__name__),
+            self.data_key,
+        ]
         for key in sorted(self.namespaces):
             portions.append(
-                "{key}={val}".format(key=key, val=self.generate_ruleset_key(key))
+                "{key}={val}".format(
+                    key=key, val=self.generate_ruleset_key(key)
+                )
             )
         return " ".join(portions) + ">"
 
@@ -92,7 +101,9 @@ class UserDataControl:
 
     def load(self):
         default_data = dict(
-            dt=pendulum.now().to_rfc3339_string(), version=3, user_id=self.user_id
+            dt=pendulum.now().to_rfc3339_string(),
+            version=3,
+            user_id=self.user_id,
         )
 
         try:
@@ -112,12 +123,16 @@ class UserDataControl:
         self._sanitise_user_data_structure()
 
     def save(self):
-        self.log.info("Saving data using {data_key!r}".format(data_key=self.data_key))
+        self.log.info(
+            "Saving data using {data_key!r}".format(data_key=self.data_key)
+        )
         self.user_data["dt"] = pendulum.now().to_rfc3339_string()
         self.dc_data[self.data_key] = self.user_data
 
     def drop(self):
-        self.log.info("Dropping data using {data_key!r}".format(data_key=self.data_key))
+        self.log.info(
+            "Dropping data using {data_key!r}".format(data_key=self.data_key)
+        )
 
         try:
             del self.dc_data[self.data_key]
@@ -141,12 +156,16 @@ class UserDataControl:
 
         self.log.info(
             "Retrieve latest occurrence for {alarm_id!r} on [{namespace}] {serial_number}".format(
-                alarm_id=alarm_id, namespace=namespace, serial_number=serial_number
+                alarm_id=alarm_id,
+                namespace=namespace,
+                serial_number=serial_number,
             )
         )
 
         try:
-            rv = pendulum.parse(self.data[TID][namespace][alarm_id][serial_number])
+            rv = pendulum.parse(
+                self.data[TID][namespace][alarm_id][serial_number]
+            )
         except KeyError:
             pass
         except Exception as exc:
@@ -156,7 +175,9 @@ class UserDataControl:
 
         return rv
 
-    def set_latest_occurrence(self, alarm_id, occurrence, namespace, serial_number):
+    def set_latest_occurrence(
+        self, alarm_id, occurrence, namespace, serial_number
+    ):
         v = occurrence.to_rfc3339_string()
 
         self.log.info(

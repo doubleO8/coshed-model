@@ -85,7 +85,9 @@ class JSONDocumentOnS3Controller(object):
                 raise KeyError(key)
             response_id = bexc.response["ResponseMetadata"]["RequestId"]
             self.log.error(
-                "Unexpected S3 error: {!s} Request ID: {!s}".format(bexc, response_id)
+                "Unexpected S3 error: {!s} Request ID: {!s}".format(
+                    bexc, response_id
+                )
             )
 
     def __setitem__(self, key, value):
