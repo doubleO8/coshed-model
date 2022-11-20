@@ -36,12 +36,12 @@ exclude = '''
 
 [tool.poetry]
 name = "coshed-model"
-version = "0.15.0"
+version = "0.15.1"
 description = ""
 authors = ["doubleO8 <wb008@hdm-stuttgart.de>"]
 
 [tool.poetry.dependencies]
-python = ">=3.6.2,3.10"
+python = ">=3.6.2,<3.10"
 SQLAlchemy = "^1.4.2"
 pendulum = "^2.1.2"
 djali = "^0.2.0"
