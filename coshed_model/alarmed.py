@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import re
 import zlib
 
 import pendulum
+
+PATTERN_ALARM_CODE = r"^((?P<code>[a-z0-9]\s?[a-z0-9]+)|(?P<crap_code>.*?) \| (?P<text>.*?))\s*$"
+REGEX_ALARM_CODE = re.compile(PATTERN_ALARM_CODE, re.I)
 
 
 class Alarmed(dict):
@@ -104,6 +108,39 @@ class Alarmed(dict):
         crc = "{:X}".format(zlib.crc32(mangled.encode("utf-8")))
 
         return f"{code}.{crc}"
+
+    @classmethod
+    def alarm_id_from_string(cls, value):
+        """
+        Generate an alarm ID by interpreting given value
+
+        Args:
+            value (str): input value
+
+        Returns:
+            str: alarm ID
+
+        >>> Alarmed.alarm_id_from_string("710531 | HYDRAULIK: Bitte Öl auffüllen")
+        '710531.5CB5A110'
+        >>> Alarmed.alarm_id_from_string('700244 | BAR FEEDER: Axes and spindles of machine blocked')
+        '700244.B8D47740'
+        >>> Alarmed.alarm_id_from_string('27097 | NCU_1: SPL-Start nicht erfolgt')
+        '27097.D020A11'
+        >>> Alarmed.alarm_id_from_string('27097')
+        '27097'
+        """
+        matcher = REGEX_ALARM_CODE.match(value)
+
+        if matcher:
+            gdict = matcher.groupdict()
+
+            if gdict.get("crap_code"):
+                return Alarmed.mk_alarm_id(
+                    code=gdict.get("crap_code"), message=value
+                )
+            return Alarmed.mk_alarm_id(gdict.get("code"), "")
+
+        return value
 
     def _mk_alarm_id(self):
         return Alarmed.mk_alarm_id(self.get("code"), self.get("message"))
