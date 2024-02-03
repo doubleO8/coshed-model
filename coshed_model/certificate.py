@@ -10,7 +10,7 @@ from cryptography.hazmat.primitives.serialization import pkcs12
 from cryptography.x509.oid import NameOID
 from cryptography.x509 import load_pem_x509_certificate
 
-from coshed.tools import log_traceback
+from coshiota.tools import log_traceback
 
 EXPIRING_SOON_THRESHOLD = pendulum.Duration(days=7)
 
