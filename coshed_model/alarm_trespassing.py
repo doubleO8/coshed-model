@@ -112,6 +112,7 @@ from sqlalchemy.sql import text
 
 Base = declarative_base()
 
+
 # https://stackoverflow.com/questions/13370317/sqlalchemy-default-datetime
 # https://docs.sqlalchemy.org/en/14/core/compiler.html#utc-timestamp-function
 class utcnow(expression.FunctionElement):
