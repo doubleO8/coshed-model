@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
+
+
 def cfapp_base_url(value, env_name=None, **kwargs):
     """
 
@@ -12,6 +15,31 @@ def cfapp_base_url(value, env_name=None, **kwargs):
     >>> cfapp_base_url("crap", env_name="dev", prefixed=True)
     'https://dev-crap.cfapps.eu10.hana.ondemand.com'
     """
+    CONTAINER_APP_ENV_DNS_SUFFIX = os.environ.get(
+        "CONTAINER_APP_ENV_DNS_SUFFIX"
+    )
+
+    if CONTAINER_APP_ENV_DNS_SUFFIX:
+        ENV_NAME = os.environ.get("ENV_NAME")
+        scheme = kwargs.get("scheme", "https")
+        hostname = value
+        domain = CONTAINER_APP_ENV_DNS_SUFFIX
+
+        if env_name is None or env_name != ENV_NAME:
+            env_key = f"ENV_DOMAIN_{str(env_name).upper()}"
+
+            try:
+                domain = os.environ[env_key]
+            except KeyError:
+                pass
+
+        fqdn = f"{hostname}.{domain}"
+
+        if kwargs.get("want_fqdn", True):
+            return f"{scheme}://{fqdn}"
+
+        return f"{scheme}://{hostname}"
+
     return "https://{hostname}.cfapps.eu10.hana.ondemand.com".format(
         hostname=environment_specific_name(value, env_name=env_name, **kwargs)
     )
@@ -65,6 +93,9 @@ def environment_specific_name(value, env_name=None, **kwargs):
     'x-dev'
     """
     if env_name is None:
+        return value.lower()
+
+    if os.environ.get("CONTAINER_APP_ENV_DNS_SUFFIX"):
         return value.lower()
 
     if kwargs.get("prefixed"):
