@@ -95,9 +95,6 @@ def environment_specific_name(value, env_name=None, **kwargs):
     if env_name is None:
         return value.lower()
 
-    if os.environ.get("CONTAINER_APP_ENV_DNS_SUFFIX"):
-        return value.lower()
-
     if kwargs.get("prefixed"):
         return "-".join((env_name, value)).lower()
 
